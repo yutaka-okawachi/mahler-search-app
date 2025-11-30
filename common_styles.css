@@ -35,9 +35,12 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+  font-family: sans-serif;
+  /* Revert to standard sans-serif */
   background: var(--primary-bg);
   line-height: 1.6;
+  color: #222;
+  /* Slightly darker text */
 }
 
 .container {
@@ -177,29 +180,35 @@ input[type="radio"]:checked+label {
   font-weight: 500;
 }
 
-/* アコーディオンスタイル */
+/* アコーディオンスタイル - Revert to simpler look */
 details.instrument-group {
-  margin: 0.5em 0;
+  margin: 10px 0;
+  border: 1px solid #ddd;
   border-radius: 4px;
+  background: #fff;
 }
 
 details.instrument-group summary {
-  padding: 0.4em 0.6em;
-  font-size: 0.9em;
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: bold;
   cursor: pointer;
-  background: #f8f9fa;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-details.instrument-group summary:hover {
-  background: #f0f2f5;
+  background-color: #f1f3f4;
+  /* Light gray like Google Sites */
+  border-bottom: 1px solid #ddd;
+  outline: none;
 }
 
 details.instrument-group[open] summary {
-  background: #e8f0fe;
-  border-color: #d2e3fc;
+  border-bottom: 1px solid #ccc;
+}
+
+fieldset {
+  border: none;
+  padding: 15px;
+  margin: 0;
+  background-color: #fff;
+  /* White background for content */
 }
 
 .accordion-content {
@@ -443,27 +452,42 @@ button.clear-input-btn:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-/* Alphabet floating bar (for list/notes pages) */
+/* Alphabet floating bar (for list/notes pages) & Search Bar */
+#floating-bar,
 #alpha-floating-bar {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
-  /* lift slightly so phone UI won't cover it */
-  z-index: 9998;
+  bottom: 0;
+  /* Stick to bottom */
+  z-index: 10000;
+  /* High z-index */
   display: flex;
-  gap: 8px;
-  /* Add padding that respects the safe area */
-  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
-  background: rgba(248, 249, 250, 0.95);
-  /* Slightly less transparent */
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.15);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  /* Ensure it has a minimum height */
-  min-height: 50px;
+  gap: 10px;
+  padding: 15px;
+  background: #fff;
+  /* Solid white background */
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+  /* Stronger shadow */
   align-items: center;
-  /* Vertically center the links */
+  justify-content: center;
+  /* Center content */
+  border-top: 1px solid #ccc;
+}
+
+#floating-bar .button-group {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 600px;
+  justify-content: space-around;
+}
+
+#floating-bar button {
+  flex: 1;
+  padding: 12px;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 @media (max-width: 640px) {

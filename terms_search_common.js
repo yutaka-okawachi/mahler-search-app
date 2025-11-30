@@ -52,7 +52,9 @@ async function fetchTerms() {
         if (datalist && Array.isArray(terms)) {
             let optionsHtml = '';
             terms.forEach(term => {
-                optionsHtml += `<option value="${term}"></option>`;
+                // term is an object { original: "...", normalized: "..." }
+                const val = term.original || term; // fallback if it's a string
+                optionsHtml += `<option value="${val}"></option>`;
             });
             datalist.innerHTML = optionsHtml;
         }

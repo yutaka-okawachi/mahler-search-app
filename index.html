@@ -101,9 +101,16 @@
           includeOrchestraAll: includeOrchestraAll
         });
 
-        const response = await fetch(`${GAS_API_URL}?${params.toString()}`);
-        if (!response.ok) throw new Error('Network response was not ok');
+        console.log('Starting search...');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+        const response = await fetch(`${GAS_API_URL}?${params.toString()}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
         const html = await response.json();
+        console.log('Search successful, receiving data');
 
         if (thisSearchId === currentSearchId) {
           setResults(html);
@@ -111,7 +118,11 @@
       } catch (error) {
         console.error('Search error:', error);
         if (thisSearchId === currentSearchId) {
-          resultsDiv.innerHTML = '<p class="result-message">エラーが発生しました。</p>';
+          if (error.name === 'AbortError') {
+            resultsDiv.innerHTML = '<p class="result-message">検索がタイムアウトしました。通信環境を確認してください。</p>';
+          } else {
+            resultsDiv.innerHTML = `<p class="result-message">エラーが発生しました: ${error.message}</p>`;
+          }
         }
       } finally {
         if (thisSearchId === currentSearchId) {

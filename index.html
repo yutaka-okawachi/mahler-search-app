@@ -99,132 +99,97 @@
           works: works.join(','),
           instruments: instruments.join(','),
           includeOrchestraAll: includeOrchestraAll
-        });
-
-        console.log('Starting search...');
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-        const response = await fetch(`${GAS_API_URL}?${params.toString()}`, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
-        const html = await response.json();
-        console.log('Search successful, receiving data');
-
-        if (thisSearchId === currentSearchId) {
-          setResults(html);
-        }
-      } catch (error) {
-        console.error('Search error:', error);
-        if (thisSearchId === currentSearchId) {
-          if (error.name === 'AbortError') {
-            resultsDiv.innerHTML = '<p class="result-message">検索がタイムアウトしました。通信環境を確認してください。</p>';
-          } else {
-            resultsDiv.innerHTML = `<p class="result-message">エラーが発生しました: ${error.message}</p>`;
-          }
-        }
-      } finally {
-        if (thisSearchId === currentSearchId) {
-          searchBtns.forEach(btn => btn.disabled = false);
-        }
-      }
-    }
-
-    function cancelSearch() {
-      currentSearchId++;
-      const resultsDiv = document.getElementById('results');
       resultsDiv.innerHTML = '<p class="loading">検索を中止しました。</p>';
-      document.querySelectorAll('.btn-action').forEach(btn => btn.disabled = false);
-    }
+          document.querySelectorAll('.btn-action').forEach(btn => btn.disabled = false);
+        }
 
     function updateSelectionSummary() {
-      const selectedWorks = Array.from(document.querySelectorAll('#works input[type="checkbox"]:checked')).map(cb => cb.value);
+            const selectedWorks = Array.from(document.querySelectorAll('#works input[type="checkbox"]:checked')).map(cb => cb.value);
 
-      const instrumentIds = ['conductor', 'strings', 'woodwinds', 'brass', 'percussions', 'vocal'];
-      let selectedInstruments = [];
-      instrumentIds.forEach(id => {
-        const checked = Array.from(document.querySelectorAll(`#${id} input[type="checkbox"]:checked`));
-        selectedInstruments = selectedInstruments.concat(checked.map(cb => cb.value));
-      });
+            const instrumentIds = ['conductor', 'strings', 'woodwinds', 'brass', 'percussions', 'vocal'];
+            let selectedInstruments = [];
+            instrumentIds.forEach(id => {
+              const checked = Array.from(document.querySelectorAll(`#${id} input[type="checkbox"]:checked`));
+              selectedInstruments = selectedInstruments.concat(checked.map(cb => cb.value));
+            });
 
-      const summaryDiv = document.getElementById('selection-summary');
-      if (!summaryDiv) return;
+            const summaryDiv = document.getElementById('selection-summary');
+            if (!summaryDiv) return;
 
-      const workLabelMap = {};
-      document.querySelectorAll('#works input[type="checkbox"]').forEach(chk => {
-        const key = chk.value.toLowerCase();
-        const labelText = chk.parentElement ? chk.parentElement.textContent.trim() : chk.value;
-        workLabelMap[key] = labelText;
-      });
+            const workLabelMap = {};
+            document.querySelectorAll('#works input[type="checkbox"]').forEach(chk => {
+              const key = chk.value.toLowerCase();
+              const labelText = chk.parentElement ? chk.parentElement.textContent.trim() : chk.value;
+              workLabelMap[key] = labelText;
+            });
 
-      let workValue = 'なし';
-      if (selectedWorks.length > 0) {
-        if (selectedWorks[0] === 'ALL') {
-          workValue = 'すべて';
-        } else {
-          const workNames = selectedWorks.map(code => workLabelMap[code] || code);
-          if (workNames.length > 0) {
-            workValue = workNames.join('<br>');
+            let workValue = 'なし';
+            if (selectedWorks.length > 0) {
+              if (selectedWorks[0] === 'ALL') {
+                workValue = 'すべて';
+              } else {
+                const workNames = selectedWorks.map(code => workLabelMap[code] || code);
+                if (workNames.length > 0) {
+                  workValue = workNames.join('<br>');
+                }
+              }
+            }
+
+            let instrumentValue = 'なし';
+            if (selectedInstruments.length > 0) {
+              if (selectedInstruments.includes('ALL_GLOBAL')) {
+                instrumentValue = 'すべて';
+              } else {
+                const instrumentNames = selectedInstruments
+                  .map(code => groupAllDisplayMap[code] || dMapping[code.toLowerCase()] || code)
+                  .filter(name => name && name !== 'ALL_GLOBAL');
+                if (instrumentNames.length > 0) {
+                  instrumentValue = instrumentNames.join('<br>');
+                }
+              }
+            }
+
+            summaryDiv.innerHTML =
+              '<div class="summary-block">' +
+              '<div class="summary-title">選択した曲：</div>' +
+              '<div class="summary-value">' + workValue + '</div>' +
+              '</div>' +
+              '<div class="summary-block">' +
+              '<div class="summary-title">選択した楽器：</div>' +
+              '<div class="summary-value">' + instrumentValue + '</div>' +
+              '</div>';
+
+            adjustFloatingBarSpacing();
           }
-        }
-      }
-
-      let instrumentValue = 'なし';
-      if (selectedInstruments.length > 0) {
-        if (selectedInstruments.includes('ALL_GLOBAL')) {
-          instrumentValue = 'すべて';
-        } else {
-          const instrumentNames = selectedInstruments
-            .map(code => groupAllDisplayMap[code] || dMapping[code.toLowerCase()] || code)
-            .filter(name => name && name !== 'ALL_GLOBAL');
-          if (instrumentNames.length > 0) {
-            instrumentValue = instrumentNames.join('<br>');
-          }
-        }
-      }
-
-      summaryDiv.innerHTML =
-        '<div class="summary-block">' +
-        '<div class="summary-title">選択した曲：</div>' +
-        '<div class="summary-value">' + workValue + '</div>' +
-        '</div>' +
-        '<div class="summary-block">' +
-        '<div class="summary-title">選択した楽器：</div>' +
-        '<div class="summary-value">' + instrumentValue + '</div>' +
-        '</div>';
-
-      adjustFloatingBarSpacing();
-    }
 
     function adjustFloatingBarSpacing() {
-      const floatingBar = document.getElementById('floating-bar');
-      const container = document.querySelector('.container');
-      if (!floatingBar || !container) return;
+            const floatingBar = document.getElementById('floating-bar');
+            const container = document.querySelector('.container');
+            if (!floatingBar || !container) return;
 
-      const barHeight = floatingBar.offsetHeight;
-      const safeArea = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom')) || 0;
-      const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--floating-bar-offset')) || 0;
-      container.style.paddingBottom = (barHeight + 40 + safeArea + offset) + 'px';
-    }
+            const barHeight = floatingBar.offsetHeight;
+            const safeArea = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-bottom')) || 0;
+            const offset = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--floating-bar-offset')) || 0;
+            container.style.paddingBottom = (barHeight + 40 + safeArea + offset) + 'px';
+          }
 
     function updateFloatingBarOffset() {
-      let offset = 16;
-      if (window.visualViewport) {
-        const diff = window.innerHeight - window.visualViewport.height;
-        if (diff > 0) offset += diff;
-      }
-      document.documentElement.style.setProperty('--floating-bar-offset', `${offset}px`);
-      adjustFloatingBarSpacing();
-    }
+            let offset = 16;
+            if (window.visualViewport) {
+              const diff = window.innerHeight - window.visualViewport.height;
+              if (diff > 0) offset += diff;
+            }
+            document.documentElement.style.setProperty('--floating-bar-offset', `${offset}px`);
+            adjustFloatingBarSpacing();
+          }
 
 
 
     window.addEventListener('resize', updateFloatingBarOffset);
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', updateFloatingBarOffset);
-      window.visualViewport.addEventListener('scroll', updateFloatingBarOffset);
-    }
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', updateFloatingBarOffset);
+          window.visualViewport.addEventListener('scroll', updateFloatingBarOffset);
+        }
   </script>
   <button type="button" id="all-works-button" class="btn-action">すべての曲を選択</button>
   <button type="button" onclick="clearWorks()" class="btn-clear">曲名をクリア</button>

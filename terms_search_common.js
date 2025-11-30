@@ -13,8 +13,9 @@ let currentSearchId = 0;
 
 // ページの種類を判定
 function getPageType() {
-    if (document.title.includes('Wagner')) return 'RW';
-    if (document.title.includes('Strauss')) return 'RS';
+    const title = document.title;
+    if (title.includes('(RW)')) return 'RW';
+    if (title.includes('(RS)')) return 'RS';
     return 'GM'; // Default to Mahler
 }
 
